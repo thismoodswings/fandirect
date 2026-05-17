@@ -45,6 +45,11 @@ export const FanPoints = {
     return data;
   },
 
+  // Backward-compatible Base44-style alias used by older UI flows
+  async filter(filters = {}) {
+    return FanPoints.list(filters);
+  },
+
   // Get a fan's points record by email
   async getByEmail(userEmail) {
     const { data, error } = await supabase
