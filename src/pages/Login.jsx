@@ -39,7 +39,7 @@ function cleanUsername(value) {
 }
 
 export default function Login() {
-  const { login, register, sendMagicLink, getHomeRoute } = useAuth()
+  const { login, register, sendMagicLink, sendPasswordReset, getHomeRoute } = useAuth()
   const navigate = useNavigate()
 
   const [mode, setMode] = useState('login')
@@ -56,6 +56,7 @@ export default function Login() {
   const title = useMemo(() => {
     if (mode === 'register') return role === 'creator' ? 'Create creator account' : 'Create fan account'
     if (mode === 'magic') return 'Get a sign-in link'
+    if (mode === 'reset') return 'Reset your password'
     return 'Log in to FanDirect'
   }, [mode, role])
 
@@ -70,6 +71,13 @@ export default function Login() {
         const { error } = await sendMagicLink(email, role)
         if (error) throw error
         setSuccess('Sign-in link sent. Check your email to continue.')
+        return
+      }
+
+      if (mode === 'reset') {
+        const { error } = await sendPasswordReset(email)
+        if (error) throw error
+        setSuccess('Password reset link sent. Check your email to create a new password.')
         return
       }
 
@@ -157,7 +165,9 @@ export default function Login() {
             <p className="mt-1 text-sm text-muted-foreground">
               {mode === 'register'
                 ? 'Set up the account fans and creators will actually use.'
-                : 'Continue to your profile, dashboard, or workspace.'}
+                : mode === 'reset'
+                  ? 'Enter your email and FanDirect will send a secure reset link.'
+                  : 'Continue to your profile, dashboard, or workspace.'}
             </p>
           </div>
 
@@ -187,7 +197,7 @@ export default function Login() {
               ))}
             </div>
 
-            {mode !== 'login' && (
+            {mode !== 'login' && mode !== 'reset' && (
               <div className="mt-5 space-y-3">
                 <p className="text-sm font-semibold">Choose account type</p>
                 <div className="grid grid-cols-2 gap-3">
@@ -276,7 +286,7 @@ export default function Login() {
                 </div>
               </label>
 
-              {mode !== 'magic' && (
+              {mode !== 'magic' && mode !== 'reset' && (
                 <label className="grid gap-1.5 text-sm font-medium">
                   Password
                   <div className="relative">
@@ -301,15 +311,51 @@ export default function Login() {
                 </label>
               )}
 
+              {mode === 'login' && (
+                <div className="flex justify-end">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMode('reset')
+                      setError('')
+                      setSuccess('')
+                    }}
+                    className="text-xs font-semibold text-primary hover:text-primary/80"
+                  >
+                    Forgot password?
+                  </button>
+                </div>
+              )}
+
+              {mode === 'reset' && (
+                <div className="rounded-2xl border border-primary/20 bg-primary/5 px-4 py-3 text-xs leading-5 text-muted-foreground">
+                  Use the same email on the account. The reset link will open FanDirect and let you set a new password.
+                </div>
+              )}
+
               <button
                 type="submit"
-                disabled={isLoading || !email || (mode !== 'magic' && !password)}
+                disabled={isLoading || !email || (mode !== 'magic' && mode !== 'reset' && !password)}
                 className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-primary to-secondary font-semibold text-white transition hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {isLoading && <Loader2 className="h-4 w-4 animate-spin" />}
-                {mode === 'register' ? 'Create account' : mode === 'magic' ? 'Send sign-in link' : 'Log in'}
+                {mode === 'register' ? 'Create account' : mode === 'magic' ? 'Send sign-in link' : mode === 'reset' ? 'Send reset link' : 'Log in'}
               </button>
             </form>
+
+            {mode === 'reset' && (
+              <button
+                type="button"
+                onClick={() => {
+                  setMode('login')
+                  setError('')
+                  setSuccess('')
+                }}
+                className="mt-4 w-full text-center text-xs font-semibold text-muted-foreground hover:text-foreground"
+              >
+                Back to login
+              </button>
+            )}
 
             <p className="mt-5 flex items-center justify-center gap-1.5 text-xs text-muted-foreground">
               <ShieldCheck className="h-3.5 w-3.5" />

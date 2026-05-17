@@ -258,6 +258,31 @@ export function AuthProvider({ children }) {
     }
   }
 
+
+  async function sendPasswordReset(email) {
+    setAuthError(null)
+
+    try {
+      const { error } = await withTimeout(
+        supabase.auth.resetPasswordForEmail(email.trim(), {
+          redirectTo: `${window.location.origin}/reset-password`,
+        }),
+        'Password reset request is taking too long. Check the Supabase URL/key, internet connection, and browser Network tab.'
+      )
+
+      if (error) {
+        setAuthError(error)
+        return { error }
+      }
+
+      return { success: true }
+    } catch (error) {
+      console.error('Password reset failed:', error)
+      setAuthError(error)
+      return { error }
+    }
+  }
+
   async function logout(shouldRedirect = true) {
     await supabase.auth.signOut()
 
@@ -333,6 +358,7 @@ export function AuthProvider({ children }) {
       register,
       logout,
       sendMagicLink,
+      sendPasswordReset,
       navigateToLogin,
       checkUserAuth,
       getHomeRoute,

@@ -20,6 +20,7 @@ import InvestorDashboard from "@/pages/InvestorDashboard";
 import CreatorPortal from "@/pages/CreatorPortal.jsx";
 import Admin from "@/pages/Admin";
 import Login from "@/pages/Login";
+import ResetPassword from "@/pages/ResetPassword";
 import AdminDashboard from "@/pages/admin/AdminDashboard";
 import ManageCreators from "@/pages/admin/ManageCreators";
 import ManageInvestors from "@/pages/admin/ManageInvestors";
@@ -64,6 +65,7 @@ const AuthenticatedApp = () => {
       </Route>
 
       <Route path="/login" element={<Login />} />
+      <Route path="/reset-password" element={<ResetPassword />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );
