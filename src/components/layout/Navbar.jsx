@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { Link, useLocation } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
@@ -9,7 +9,8 @@ import { Investor } from '@/entities/Investor'
 
 export default function Navbar({ cartCount = 0 }) {
   const location = useLocation()
-  const { user, isAuthenticated, isAdmin, isCreator, isFan, logout } = useAuth()
+  const navigate = useNavigate()
+  const { user, isAuthenticated, isAdmin, isCreator, isFan, isInvestor: roleIsInvestor, logout, roles, activeRole, switchRole, getHomeRoute } = useAuth()
   const [open, setOpen] = useState(false)
   const [isInvestor, setIsInvestor] = useState(false)
 
@@ -44,7 +45,7 @@ export default function Navbar({ cartCount = 0 }) {
     { path: '/events', label: 'Events' },
     ...(isFan || !isAuthenticated ? [{ path: '/mine', label: 'Mine FDT' }] : []),
     ...(isCreator ? [{ path: '/creator-portal', label: 'Creator Portal' }] : []),
-    ...(isInvestor ? [{ path: '/investors', label: 'My Stake' }] : []),
+    ...((isInvestor || roleIsInvestor) ? [{ path: '/investors', label: 'My Stake' }] : []),
     ...(isAdmin
       ? [
           { path: '/admin', label: 'Admin' },
@@ -88,6 +89,25 @@ export default function Navbar({ cartCount = 0 }) {
           </div>
 
           <div className="flex items-center gap-2">
+
+            {isAuthenticated && roles?.length > 1 && (
+              <select
+                value={activeRole || ''}
+                onChange={(event) => {
+                  const nextRole = event.target.value
+                  if (switchRole(nextRole)) navigate(getHomeRoute(nextRole))
+                }}
+                className="hidden rounded-xl border border-border bg-background px-3 py-2 text-xs font-semibold capitalize text-foreground outline-none md:block"
+                aria-label="Switch workspace"
+              >
+                {roles.map((role) => (
+                  <option key={role} value={role}>
+                    {role.replace('_', ' ')}
+                  </option>
+                ))}
+              </select>
+            )}
+
             <Link
               to="/cart"
               className="relative p-2 rounded-lg hover:bg-muted transition-colors"
@@ -146,6 +166,28 @@ export default function Navbar({ cartCount = 0 }) {
                       {link.label}
                     </Link>
                   ))}
+
+
+                  {isAuthenticated && roles?.length > 1 && (
+                    <div className="rounded-2xl border border-border bg-card p-3">
+                      <p className="mb-2 text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">Workspace</p>
+                      <select
+                        value={activeRole || ''}
+                        onChange={(event) => {
+                          const nextRole = event.target.value
+                          if (switchRole(nextRole)) {
+                            navigate(getHomeRoute(nextRole))
+                            setOpen(false)
+                          }
+                        }}
+                        className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm font-semibold capitalize outline-none"
+                      >
+                        {roles.map((role) => (
+                          <option key={role} value={role}>{role.replace('_', ' ')}</option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
 
                   <div className="border-t border-border my-2" />
 

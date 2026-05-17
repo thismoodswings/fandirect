@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { ShoppingBag, Trash2, Plus, Minus, ArrowRight, ShoppingCart } from 'lucide-react';
-import { getCart, removeFromCart, updateCartQuantity, getCartTotal } from '@/lib/cartUtils';
+import { getCart, removeFromCart, updateCartQuantity, getCartTotal, getCartPricing } from '@/lib/cartUtils';
 
 export default function Cart() {
   const [cart, setCart] = useState([]);
@@ -14,6 +14,7 @@ export default function Cart() {
     return () => window.removeEventListener('cart-updated', update);
   }, []);
 
+  const pricing = getCartPricing(cart);
   const total = getCartTotal(cart);
 
   if (cart.length === 0) {
@@ -69,12 +70,12 @@ export default function Cart() {
       {/* Summary */}
       <div className="bg-card rounded-xl border border-border/50 p-6">
         <div className="flex justify-between text-sm text-muted-foreground mb-2">
-          <span>Subtotal</span>
-          <span>₦{total.toLocaleString()}</span>
+          <span>Creator subtotal</span>
+          <span>₦{pricing.creatorSubtotal.toLocaleString()}</span>
         </div>
         <div className="flex justify-between text-sm text-muted-foreground mb-4">
-          <span>Processing fee</span>
-          <span>₦0</span>
+          <span>Platform service fee</span>
+          <span>₦{pricing.platformFeeTotal.toLocaleString()}</span>
         </div>
         <div className="border-t border-border pt-4 flex justify-between">
           <span className="font-heading font-bold text-lg">Total</span>

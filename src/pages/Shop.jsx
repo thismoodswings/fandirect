@@ -34,16 +34,16 @@ export default function Shop() {
 
       if (sortedProducts.length > 0) {
         setProducts(sortedProducts)
-        setMessage('Loaded from Supabase.')
+        setMessage('Content synced.')
       } else {
         setProducts(fallbackProducts)
-        setMessage('Showing demo products until Supabase has active products.')
+        setMessage('Showing featured products while live products load.')
       }
     } catch (error) {
       console.warn(error)
 
       setProducts(fallbackProducts)
-      setMessage('Showing demo products because Supabase products could not be loaded.')
+      setMessage('Showing featured products while live products load.')
     } finally {
       setIsLoading(false)
       setIsRefreshing(false)

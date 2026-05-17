@@ -153,16 +153,16 @@ export default function Home() {
       setCreators(nextCreators.length ? nextCreators : fallbackCreators.slice(0, 6))
 
       if (nextProducts.length || nextCreators.length) {
-        setMessage('Loaded from Supabase.')
+        setMessage('Content synced.')
       } else {
-        setMessage('Showing demo content until Supabase has products and creators.')
+        setMessage('Showing featured content while live products and creators load.')
       }
     } catch (error) {
       console.warn(error)
 
       setProducts(fallbackProducts.slice(0, 8))
       setCreators(fallbackCreators.slice(0, 6))
-      setMessage('Showing demo content because Supabase could not be loaded.')
+      setMessage('Showing featured content while live content loads.')
     } finally {
       setIsLoading(false)
       setIsRefreshing(false)
@@ -224,7 +224,7 @@ export default function Home() {
           <EmptyState
             icon={ShoppingBag}
             title="No products yet"
-            description="Add active products in Supabase to show them here."
+            description="Publish active products to show them here."
           />
         )}
       </FeaturedSection>
@@ -247,7 +247,7 @@ export default function Home() {
           <EmptyState
             icon={Star}
             title="No creators yet"
-            description="Add active creators in Supabase to show them here."
+            description="Publish active creators to show them here."
           />
         )}
       </FeaturedSection>

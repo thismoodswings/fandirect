@@ -81,7 +81,7 @@ export default function ProductDetail() {
 
         if (!ignore) {
           setProduct(row);
-          setNotice("Loaded from Supabase.");
+          setNotice("Content synced.");
         }
       } catch (loadError) {
         console.warn("Product load failed:", loadError);
@@ -92,7 +92,7 @@ export default function ProductDetail() {
           setProduct(demoProduct);
           setNotice(
             demoProduct
-              ? "Supabase product not found yet. Showing demo product."
+              ? "This product is not live yet. Showing a featured preview."
               : ""
           );
           setError(demoProduct ? "" : "Product not found.");
@@ -144,7 +144,7 @@ export default function ProductDetail() {
         </p>
 
         <p className="mt-2 text-sm text-muted-foreground">
-          This product may not exist in Supabase yet.
+          This product is not available yet.
         </p>
 
         <Link

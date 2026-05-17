@@ -29,6 +29,7 @@ import {
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { Creator, Product } from '@/entities'
+import { calculatePlatformPricing, formatNaira, normalizeProductPricing } from '@/lib/pricing'
 
 const types = ['merch', 'event', 'digital', 'experience', 'exclusive']
 
@@ -36,6 +37,7 @@ const defaultForm = {
   title: '',
   description: '',
   type: 'merch',
+  creator_base_price: '',
   price: '',
   original_price: '',
   image_url: '',
@@ -64,15 +66,15 @@ function sortNewestFirst(rows = []) {
 }
 
 function createPayload(data) {
-  return {
+  return normalizeProductPricing({
     ...data,
-    price: Number(data.price) || 0,
+    creator_base_price: Number(data.creator_base_price || data.price) || 0,
     original_price: Number(data.original_price) || 0,
     stock: Number(data.stock) || 0,
     cashback_percent: Number(data.cashback_percent) || 0,
     loyalty_points: Number(data.loyalty_points) || 0,
     is_limited: Boolean(data.is_limited),
-  }
+  })
 }
 
 export default function ManageProducts() {
@@ -129,6 +131,7 @@ export default function ManageProducts() {
       title: product.title || '',
       description: product.description || '',
       type: product.type || 'merch',
+      creator_base_price: product.creator_base_price ?? product.price ?? '',
       price: product.price ?? '',
       original_price: product.original_price ?? '',
       image_url: product.image_url || '',
@@ -307,7 +310,7 @@ export default function ManageProducts() {
                   </span>
 
                   <span className="text-xs font-medium text-foreground">
-                    ₦{Number(product.price || 0).toLocaleString()}
+                    {formatNaira(product.fan_price || product.price)}
                   </span>
 
                   <Badge
@@ -444,12 +447,12 @@ export default function ManageProducts() {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label>Price (₦)</Label>
+                <Label>Creator Base Price (₦)</Label>
                 <Input
                   type="number"
-                  value={form.price}
+                  value={form.creator_base_price}
                   onChange={(event) =>
-                    setForm({ ...form, price: event.target.value })
+                    setForm({ ...form, creator_base_price: event.target.value })
                   }
                   className="mt-1 border-border/50 bg-background"
                 />
@@ -465,6 +468,21 @@ export default function ManageProducts() {
                   }
                   className="mt-1 border-border/50 bg-background"
                 />
+              </div>
+            </div>
+
+            <div className="rounded-2xl border border-border bg-background p-4 text-sm">
+              <div className="flex justify-between text-muted-foreground">
+                <span>Creator base price</span>
+                <span>{formatNaira(calculatePlatformPricing(form.creator_base_price).creator_base_price)}</span>
+              </div>
+              <div className="mt-1 flex justify-between text-muted-foreground">
+                <span>FanDirect service fee 5%</span>
+                <span>{formatNaira(calculatePlatformPricing(form.creator_base_price).platform_fee_amount)}</span>
+              </div>
+              <div className="mt-2 flex justify-between border-t border-border pt-2 font-semibold text-foreground">
+                <span>Fan price</span>
+                <span>{formatNaira(calculatePlatformPricing(form.creator_base_price).fan_price)}</span>
               </div>
             </div>
 

@@ -67,16 +67,22 @@ function getUserEmail(user) {
   return user?.email || user?.user_metadata?.email || ''
 }
 
-function getFirstName(user) {
-  const fullName =
-    user?.full_name ||
-    user?.name ||
-    user?.user_metadata?.full_name ||
-    user?.user_metadata?.name ||
-    user?.email ||
+function getDashboardUsername(user, profile) {
+  const metadata = user?.user_metadata || {}
+  const candidate =
+    profile?.username ||
+    metadata.username ||
+    metadata.preferred_username ||
+    metadata.user_name ||
+    user?.username ||
+    profile?.display_name ||
+    metadata.display_name ||
+    metadata.full_name ||
+    metadata.name ||
+    user?.email?.split('@')[0] ||
     'Fan'
 
-  return String(fullName).split(' ')[0]
+  return String(candidate).trim().replace(/^@+/, '').split('@')[0]
 }
 
 function getStatusClass(status, fallback = 'bg-muted text-muted-foreground') {
@@ -97,7 +103,7 @@ function sortOrdersNewestFirst(rows = []) {
 }
 
 export default function Dashboard() {
-  const { user, isAuthenticated, isLoadingAuth } = useAuth()
+  const { user, profile, isAuthenticated, isLoadingAuth } = useAuth()
   const [tokenWallets, setTokenWallets] = useState([])
   const [fanPoints, setFanPoints] = useState(null)
   const [orders, setOrders] = useState([])
@@ -250,7 +256,7 @@ export default function Dashboard() {
       <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <h1 className="font-heading text-3xl font-bold text-foreground">
-            Welcome back, {getFirstName(user)}!
+            Welcome back, {getDashboardUsername(user, profile)}!
           </h1>
 
           <p className="mt-1 text-muted-foreground">

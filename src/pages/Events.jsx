@@ -70,9 +70,9 @@ export default function Events() {
       setEvents(sortedEvents)
 
       if (sortedEvents.length > 0) {
-        setMessage('Loaded from Supabase.')
+        setMessage('Content synced.')
       } else {
-        setMessage('No active events in Supabase yet.')
+        setMessage('No live events are available yet.')
       }
     } catch (loadError) {
       console.warn(loadError)
@@ -80,7 +80,7 @@ export default function Events() {
       const demoEvents = getFallbackEvents()
 
       setEvents(demoEvents)
-      setMessage('Showing demo events because Supabase events could not be loaded.')
+      setMessage('Showing featured events while live events load.')
     } finally {
       setIsLoading(false)
       setIsRefreshing(false)

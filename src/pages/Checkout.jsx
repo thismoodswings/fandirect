@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { getCart, getCartTotal, clearCart } from "@/lib/cartUtils";
+import { getCart, getCartTotal, getCartPricing, clearCart } from "@/lib/cartUtils";
 
 function getFanLevel(totalSpent) {
   if (totalSpent >= 500000) return "diamond";
@@ -75,6 +75,7 @@ export default function Checkout() {
     }
   }, [user]);
 
+  const pricing = getCartPricing(cart);
   const total = getCartTotal(cart);
 
   const completePaidOrder = async ({ orderId, paymentReference }) => {
@@ -116,9 +117,20 @@ export default function Checkout() {
           product_id: item.product_id,
           title: item.title,
           price: item.price,
+          creator_base_price: item.creator_base_price,
+          platform_fee_rate: item.platform_fee_rate,
+          platform_fee_amount: item.platform_fee_amount,
+          fan_price: item.fan_price || item.price,
+          creator_payout_amount: Number(item.creator_base_price || item.price || 0) * Number(item.quantity || 0),
+          platform_fee_total: Number(item.platform_fee_amount || 0) * Number(item.quantity || 0),
           quantity: item.quantity,
           image_url: item.image_url,
+          creator_id: item.creator_id,
+          creator_name: item.creator_name,
         })),
+        subtotal_amount: pricing.creatorSubtotal,
+        platform_fee_total: pricing.platformFeeTotal,
+        creator_payout_total: pricing.creatorSubtotal,
         total_amount: total,
         payment_status: "pending",
         fulfillment_status: "pending",
@@ -205,9 +217,19 @@ export default function Checkout() {
             ))
           )}
 
-          <div className="border-t border-border mt-3 pt-3 flex justify-between font-heading font-bold text-lg">
-            <span>Total</span>
-            <span>₦{total.toLocaleString()}</span>
+          <div className="mt-3 border-t border-border pt-3 space-y-2 text-sm">
+            <div className="flex justify-between text-muted-foreground">
+              <span>Creator subtotal</span>
+              <span>₦{pricing.creatorSubtotal.toLocaleString()}</span>
+            </div>
+            <div className="flex justify-between text-muted-foreground">
+              <span>Platform service fee</span>
+              <span>₦{pricing.platformFeeTotal.toLocaleString()}</span>
+            </div>
+            <div className="flex justify-between pt-2 font-heading font-bold text-lg text-foreground">
+              <span>Total</span>
+              <span>₦{total.toLocaleString()}</span>
+            </div>
           </div>
         </div>
 

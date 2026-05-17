@@ -94,29 +94,42 @@ export default function CreatorProfile() {
         return
       }
 
-      // Try fetching by username first, then fall back to ID
+      // Try fetching by username first, then fall back to ID.
+      // Only use the featured fallback when the creator record itself cannot be found.
       let nextCreator = null
       try {
         nextCreator = await Creator.getByUsername(creatorSlug)
-      } catch {
+      } catch (usernameError) {
         nextCreator = await Creator.get(creatorSlug)
       }
 
-      const [nextProducts, nextDrops] = await Promise.all([
+      setCreator(nextCreator)
+      setMessage('')
+
+      const [productResult, dropResult] = await Promise.allSettled([
         Product.list({ creator_id: nextCreator.id, status: 'active' }),
         MediaDrop.list({ creator_id: nextCreator.id }),
       ])
 
-      setCreator(nextCreator)
-      setProducts(nextProducts || [])
-      setDrops(nextDrops || [])
-      setMessage('Loaded from Supabase.')
+      if (productResult.status === 'fulfilled') {
+        setProducts(productResult.value || [])
+      } else {
+        setProducts([])
+        console.warn('Creator products could not be loaded.', productResult.reason)
+      }
+
+      if (dropResult.status === 'fulfilled') {
+        setDrops(dropResult.value || [])
+      } else {
+        setDrops([])
+        console.warn('Creator media drops could not be loaded.', dropResult.reason)
+      }
     } catch (loadError) {
       setCreator(fallbackCreators[0])
       setProducts(fallbackProducts)
       setDrops([])
-      setMessage('Supabase row not found yet. Showing demo profile.')
-      console.warn(loadError)
+      setMessage('This creator profile is not live yet. Showing a featured preview.')
+      console.warn('Creator profile could not be loaded.', loadError)
     } finally {
       setIsLoading(false)
     }
@@ -147,7 +160,10 @@ export default function CreatorProfile() {
       .map(([name, url]) => ({ name, url: normalizeUrl(url) }))
   }, [creator?.social_links])
 
-  const fanCount = Number(creator?.fan_count || 0)
+  const fanCount = Number(creator?.fan_count || creator?.followers || 0)
+  const creatorName = creator?.name || creator?.display_name || creator?.full_name || 'FanDirect Creator'
+  const creatorAvatar = creator?.avatar_url || creator?.profile_photo_url || creator?.image_url || creator?.photo_url || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=300'
+  const creatorCover = creator?.cover_url || creator?.cover_image_url || creator?.banner_url || 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=1200'
 
   if (isLoading || isLoadingAuth) {
     return (
@@ -169,8 +185,8 @@ export default function CreatorProfile() {
     <div>
       <div className="relative h-48 bg-muted md:h-64">
         <img
-          src={creator.cover_url || 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=1200'}
-          alt={creator.name || 'Creator cover'}
+          src={creatorCover}
+          alt={`${creatorName} cover`}
           className="h-full w-full object-cover"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-background via-background/50 to-transparent" />
@@ -184,14 +200,14 @@ export default function CreatorProfile() {
         <div className="-mt-16 flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
           <div className="flex flex-col gap-5 sm:flex-row sm:items-end">
             <img
-              src={creator.avatar_url || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=300'}
-              alt={creator.name || 'Creator'}
+              src={creatorAvatar}
+              alt={creatorName}
               className="h-28 w-28 rounded-3xl border-4 border-background object-cover md:h-32 md:w-32"
             />
             <div className="pb-2">
               <div className="flex flex-wrap items-center gap-2">
                 <h1 className="font-heading text-3xl font-bold text-foreground md:text-4xl">
-                  {creator.name || 'FanDirect Creator'}
+                  {creatorName}
                 </h1>
                 {creator.verified && <CheckCircle className="h-6 w-6 text-primary" />}
               </div>
