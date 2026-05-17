@@ -12,6 +12,7 @@ import {
 import { format } from 'date-fns'
 import { motion } from 'framer-motion'
 import { Product } from '@/entities'
+import ProductEngagementBar from '@/components/shared/ProductEngagementBar'
 import { fallbackProducts } from '@/lib/fallbackData'
 
 const dateFormatter = new Intl.DateTimeFormat(undefined, {
@@ -70,9 +71,9 @@ export default function Events() {
       setEvents(sortedEvents)
 
       if (sortedEvents.length > 0) {
-        setMessage('Content synced.')
+        setMessage('Loaded from Supabase.')
       } else {
-        setMessage('No live events are available yet.')
+        setMessage('No active events in Supabase yet.')
       }
     } catch (loadError) {
       console.warn(loadError)
@@ -80,7 +81,7 @@ export default function Events() {
       const demoEvents = getFallbackEvents()
 
       setEvents(demoEvents)
-      setMessage('Showing featured events while live events load.')
+      setMessage('Showing demo events because Supabase events could not be loaded.')
     } finally {
       setIsLoading(false)
       setIsRefreshing(false)
@@ -247,6 +248,16 @@ function EventRow({ event }) {
                 </span>
               )}
             </div>
+          </div>
+
+          <div className="mt-5">
+            <ProductEngagementBar
+              item={event}
+              itemType="product"
+              compact
+              url={`${window.location.origin}/product/${event.id}`}
+              title={event.title || event.name || 'FanDirect event'}
+            />
           </div>
 
           <div className="mt-5 flex items-center justify-between gap-4">

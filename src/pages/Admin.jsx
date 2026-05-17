@@ -1,7 +1,8 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Outlet } from 'react-router-dom';
-import { LayoutDashboard, Users, Package, ShoppingBag, TrendingUp, Zap } from 'lucide-react';
+import { LayoutDashboard, Users, Package, ShoppingBag, TrendingUp } from 'lucide-react';
+import FanDirectLogo from '@/components/brand/FanDirectLogo';
 
 const navItems = [
   { path: '/admin', label: 'Dashboard', icon: LayoutDashboard, exact: true },
@@ -22,9 +23,7 @@ export default function Admin() {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
       <div className="flex items-center gap-2 mb-6">
-        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-secondary flex items-center justify-center">
-          <Zap className="w-4 h-4 text-white" />
-        </div>
+        <FanDirectLogo className="h-8 w-8" />
         <span className="font-heading font-bold text-lg text-foreground">Admin Panel</span>
       </div>
 

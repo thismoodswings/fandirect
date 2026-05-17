@@ -1,8 +1,8 @@
 import React, { useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '@/components/AuthContext'
+import FanDirectLogo from '@/components/brand/FanDirectLogo'
 import {
-  Zap,
   Mail,
   Lock,
   Eye,
@@ -121,9 +121,7 @@ export default function Login() {
               <div className="absolute -bottom-16 -left-16 h-48 w-48 rounded-full bg-secondary/20 blur-3xl" />
 
               <div className="relative">
-                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-secondary">
-                  <Zap className="h-7 w-7 text-white" />
-                </div>
+                <FanDirectLogo className="h-14 w-14" />
 
                 <h1 className="mt-8 max-w-md font-heading text-4xl font-bold leading-tight">
                   Social profiles, merch drops, and fan commerce in one place.
@@ -149,9 +147,7 @@ export default function Login() {
         <section className="mx-auto w-full max-w-md">
           <div className="mb-8 text-center">
             <Link to="/" className="mb-5 inline-flex items-center gap-2">
-              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-secondary">
-                <Zap className="h-5 w-5 text-white" />
-              </div>
+              <FanDirectLogo className="h-11 w-11" />
               <span className="font-heading text-2xl font-bold">
                 Fan<span className="text-primary">Direct</span>
               </span>

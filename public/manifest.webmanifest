@@ -1,0 +1,22 @@
+{
+  "name": "FanDirect",
+  "short_name": "FanDirect",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#05040a",
+  "theme_color": "#8b3dff",
+  "icons": [
+    {
+      "src": "/logo-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/logo-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

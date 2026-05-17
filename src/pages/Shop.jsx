@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { Search, ShoppingBag, RefreshCw, SlidersHorizontal } from 'lucide-react'
+import { Search, ShoppingBag, RefreshCw, SlidersHorizontal, Loader2 } from 'lucide-react'
 import ProductCard from '@/components/shared/ProductCard'
 import { Product } from '@/entities'
 import { fallbackProducts } from '@/lib/fallbackData'
@@ -34,16 +34,16 @@ export default function Shop() {
 
       if (sortedProducts.length > 0) {
         setProducts(sortedProducts)
-        setMessage('Content synced.')
+        setMessage('Loaded from Supabase.')
       } else {
         setProducts(fallbackProducts)
-        setMessage('Showing featured products while live products load.')
+        setMessage('Showing demo products until Supabase has active products.')
       }
     } catch (error) {
       console.warn(error)
 
       setProducts(fallbackProducts)
-      setMessage('Showing featured products while live products load.')
+      setMessage('Showing demo products because Supabase products could not be loaded.')
     } finally {
       setIsLoading(false)
       setIsRefreshing(false)

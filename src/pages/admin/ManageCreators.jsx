@@ -405,19 +405,18 @@ export default function ManageCreators() {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label>Profile photo</Label>
-                <div className="mt-2 h-24 w-24 overflow-hidden rounded-2xl border border-border bg-background">
-                  {(avatarFile || form.avatar_url) ? (
-                    <img
-                      src={avatarFile ? URL.createObjectURL(avatarFile) : form.avatar_url}
-                      alt="Profile preview"
-                      className="h-full w-full object-cover"
-                    />
-                  ) : null}
-                </div>
+                <Label>Avatar</Label>
+                <Input
+                  value={form.avatar_url}
+                  onChange={(event) =>
+                    setForm({ ...form, avatar_url: event.target.value })
+                  }
+                  className="mt-1 border-border/50 bg-background"
+                  placeholder="https://..."
+                />
                 <label className="mt-2 inline-flex cursor-pointer items-center gap-2 rounded-xl border border-border bg-background px-3 py-2 text-xs font-semibold text-muted-foreground hover:bg-muted">
                   <Upload className="h-3.5 w-3.5" />
-                  {avatarFile ? avatarFile.name : 'Upload profile photo'}
+                  {avatarFile ? avatarFile.name : 'Upload avatar'}
                   <input
                     type="file"
                     accept="image/*"
@@ -430,19 +429,18 @@ export default function ManageCreators() {
               </div>
 
               <div>
-                <Label>Cover photo</Label>
-                <div className="mt-2 h-24 overflow-hidden rounded-2xl border border-border bg-background">
-                  {(coverFile || form.cover_url) ? (
-                    <img
-                      src={coverFile ? URL.createObjectURL(coverFile) : form.cover_url}
-                      alt="Cover preview"
-                      className="h-full w-full object-cover"
-                    />
-                  ) : null}
-                </div>
+                <Label>Cover</Label>
+                <Input
+                  value={form.cover_url}
+                  onChange={(event) =>
+                    setForm({ ...form, cover_url: event.target.value })
+                  }
+                  className="mt-1 border-border/50 bg-background"
+                  placeholder="https://..."
+                />
                 <label className="mt-2 inline-flex cursor-pointer items-center gap-2 rounded-xl border border-border bg-background px-3 py-2 text-xs font-semibold text-muted-foreground hover:bg-muted">
                   <Upload className="h-3.5 w-3.5" />
-                  {coverFile ? coverFile.name : 'Upload cover photo'}
+                  {coverFile ? coverFile.name : 'Upload cover'}
                   <input
                     type="file"
                     accept="image/*"

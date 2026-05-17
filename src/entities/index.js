@@ -7,4 +7,5 @@ export { InvestmentRequest } from "./InvestmentRequest";
 export { MediaDrop } from "./MediaDrop";
 export { Order } from "./Order";
 export { Product } from "./Product";
+export { ProductInteraction } from "./ProductInteraction";
 export { SocialFeedPost } from "./SocialFeedPost";

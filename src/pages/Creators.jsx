@@ -13,17 +13,12 @@ import {
 
 const categories = [
   'all',
-  'music',
-  'comedy',
-  'fashion',
-  'beauty',
-  'tech',
-  'gaming',
-  'sports',
-  'lifestyle',
   'artist',
   'influencer',
-  'other',
+  'actor',
+  'musician',
+  'comedian',
+  'athlete',
 ]
 
 export default function Creators() {
@@ -49,14 +44,14 @@ export default function Creators() {
 
         if (!ignore) {
           setCreators(sorted)
-          setMessage(sorted.length ? 'Content synced.' : 'No creators are live yet.')
+          setMessage(sorted.length ? 'Loaded from Supabase.' : 'No creators in Supabase yet.')
         }
       } catch (error) {
         console.warn(error)
 
         if (!ignore) {
           setCreators(fallbackCreators)
-          setMessage('Showing featured creators while live profiles load.')
+          setMessage('Showing demo creators because Supabase creators could not be loaded.')
         }
       } finally {
         if (!ignore) {

@@ -69,11 +69,13 @@ function getUserEmail(user) {
 
 function getDashboardUsername(user, profile) {
   const metadata = user?.user_metadata || {}
+  const appMetadata = user?.app_metadata || {}
   const candidate =
     profile?.username ||
     metadata.username ||
     metadata.preferred_username ||
     metadata.user_name ||
+    appMetadata.username ||
     user?.username ||
     profile?.display_name ||
     metadata.display_name ||
@@ -185,8 +187,16 @@ export default function Dashboard() {
         Number(fanPoints.total_cashback || 0) + Number(prize.value || 0)
     }
 
+    if (prize?.type === 'spin') {
+      updates.spins_remaining = Number(updates.spins_remaining || 0) + Number(prize.value || 0)
+    }
+
     try {
       const updated = await FanPoints.update(fanPoints.id, updates)
+
+      if (prize?.type === 'fdt' && userEmail) {
+        await FanToken.credit(userEmail, Number(prize.value || 0)).catch(() => null)
+      }
 
       setFanPoints({
         ...fanPoints,
@@ -194,7 +204,7 @@ export default function Dashboard() {
         ...(updated || {}),
       })
 
-      setNotice('Spin reward added to your FanPoints.')
+      setNotice(prize?.type === 'fdt' ? 'Spin reward added to your FDT wallet.' : 'Spin reward added to your FanPoints.')
     } catch (spinError) {
       setError(spinError.message || 'Could not save spin reward.')
     }

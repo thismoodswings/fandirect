@@ -1,5 +1,4 @@
 import { supabase } from '../lib/supabase';
-import { normalizeProductPricing } from '../lib/pricing';
 
 function firstSelectedRow(data, fallbackMessage) {
   const row = Array.isArray(data) ? data[0] : data;
@@ -53,11 +52,9 @@ export const Product = {
 
   // Create a new product
   async create(productData) {
-    const payload = normalizeProductPricing(productData);
-
     const { data, error } = await supabase
       .from('products')
-      .insert([payload])
+      .insert([productData])
       .select();
     if (error) throw error;
     return firstSelectedRow(data, 'Product could not be created.');
@@ -65,33 +62,13 @@ export const Product = {
 
   // Update a product
   async update(id, updates) {
-    const payload = Object.prototype.hasOwnProperty.call(updates, 'creator_base_price') || Object.prototype.hasOwnProperty.call(updates, 'price')
-      ? normalizeProductPricing(updates)
-      : updates;
-
     const { data, error } = await supabase
       .from('products')
-      .update(payload)
+      .update(updates)
       .eq('id', id)
       .select();
     if (error) throw error;
     return firstSelectedRow(data, 'Product not found.');
-  },
-
-
-
-  async bulkCreate(products = []) {
-    const payload = products.map((product) => normalizeProductPricing(product));
-
-    if (payload.length === 0) return [];
-
-    const { data, error } = await supabase
-      .from('products')
-      .insert(payload)
-      .select();
-
-    if (error) throw error;
-    return data || [];
   },
 
   // Delete a product (prefer archiving instead)

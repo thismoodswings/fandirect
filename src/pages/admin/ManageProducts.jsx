@@ -29,7 +29,6 @@ import {
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { Creator, Product } from '@/entities'
-import { calculatePlatformPricing, formatNaira, normalizeProductPricing } from '@/lib/pricing'
 
 const types = ['merch', 'event', 'digital', 'experience', 'exclusive']
 
@@ -37,8 +36,9 @@ const defaultForm = {
   title: '',
   description: '',
   type: 'merch',
-  creator_base_price: '',
   price: '',
+  creator_base_price: '',
+  platform_fee_rate: 0.05,
   original_price: '',
   image_url: '',
   creator_id: '',
@@ -47,6 +47,13 @@ const defaultForm = {
   cashback_percent: 0,
   loyalty_points: 0,
   is_limited: false,
+  requires_subscription: false,
+  access_tier: 'free',
+  sku: '',
+  tags: '',
+  sizes: '',
+  colors: '',
+  shipping_required: true,
   event_date: '',
   event_location: '',
   status: 'active',
@@ -65,16 +72,38 @@ function sortNewestFirst(rows = []) {
   })
 }
 
+function splitCsv(value) {
+  return String(value || '')
+    .split(',')
+    .map((item) => item.trim())
+    .filter(Boolean)
+}
+
 function createPayload(data) {
-  return normalizeProductPricing({
+  const creatorBasePrice = Number(data.creator_base_price || data.price || 0)
+  const feeRate = Number(data.platform_fee_rate || 0.05)
+  const feeAmount = Math.round(creatorBasePrice * feeRate * 100) / 100
+  const fanPrice = Math.round((creatorBasePrice + feeAmount) * 100) / 100
+
+  return {
     ...data,
-    creator_base_price: Number(data.creator_base_price || data.price) || 0,
+    creator_base_price: creatorBasePrice,
+    platform_fee_rate: feeRate,
+    platform_fee_amount: feeAmount,
+    fan_price: fanPrice,
+    price: fanPrice,
     original_price: Number(data.original_price) || 0,
     stock: Number(data.stock) || 0,
     cashback_percent: Number(data.cashback_percent) || 0,
     loyalty_points: Number(data.loyalty_points) || 0,
     is_limited: Boolean(data.is_limited),
-  })
+    requires_subscription: Boolean(data.requires_subscription),
+    access_tier: data.requires_subscription ? data.access_tier || 'supporter' : 'free',
+    tags: splitCsv(data.tags),
+    sizes: splitCsv(data.sizes),
+    colors: splitCsv(data.colors),
+    shipping_required: Boolean(data.shipping_required),
+  }
 }
 
 export default function ManageProducts() {
@@ -131,8 +160,9 @@ export default function ManageProducts() {
       title: product.title || '',
       description: product.description || '',
       type: product.type || 'merch',
+      price: product.creator_base_price ?? product.price ?? '',
       creator_base_price: product.creator_base_price ?? product.price ?? '',
-      price: product.price ?? '',
+      platform_fee_rate: product.platform_fee_rate ?? 0.05,
       original_price: product.original_price ?? '',
       image_url: product.image_url || '',
       creator_id: product.creator_id || '',
@@ -141,6 +171,13 @@ export default function ManageProducts() {
       cashback_percent: product.cashback_percent ?? 0,
       loyalty_points: product.loyalty_points ?? 0,
       is_limited: Boolean(product.is_limited),
+      requires_subscription: Boolean(product.requires_subscription || product.is_private_drop || (product.access_tier && product.access_tier !== 'free')),
+      access_tier: product.access_tier || 'free',
+      sku: product.sku || '',
+      tags: Array.isArray(product.tags) ? product.tags.join(', ') : product.tags || '',
+      sizes: Array.isArray(product.sizes) ? product.sizes.join(', ') : product.sizes || '',
+      colors: Array.isArray(product.colors) ? product.colors.join(', ') : product.colors || '',
+      shipping_required: product.shipping_required ?? !['digital', 'event', 'experience'].includes(product.type || 'merch'),
       event_date: product.event_date || '',
       event_location: product.event_location || '',
       status: product.status || 'active',
@@ -310,7 +347,7 @@ export default function ManageProducts() {
                   </span>
 
                   <span className="text-xs font-medium text-foreground">
-                    {formatNaira(product.fan_price || product.price)}
+                    ₦{Number(product.price || 0).toLocaleString()}
                   </span>
 
                   <Badge
@@ -447,12 +484,12 @@ export default function ManageProducts() {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label>Creator Base Price (₦)</Label>
+                <Label>Creator Price (₦)</Label>
                 <Input
                   type="number"
                   value={form.creator_base_price}
                   onChange={(event) =>
-                    setForm({ ...form, creator_base_price: event.target.value })
+                    setForm({ ...form, creator_base_price: event.target.value, price: event.target.value })
                   }
                   className="mt-1 border-border/50 bg-background"
                 />
@@ -468,21 +505,6 @@ export default function ManageProducts() {
                   }
                   className="mt-1 border-border/50 bg-background"
                 />
-              </div>
-            </div>
-
-            <div className="rounded-2xl border border-border bg-background p-4 text-sm">
-              <div className="flex justify-between text-muted-foreground">
-                <span>Creator base price</span>
-                <span>{formatNaira(calculatePlatformPricing(form.creator_base_price).creator_base_price)}</span>
-              </div>
-              <div className="mt-1 flex justify-between text-muted-foreground">
-                <span>FanDirect service fee 5%</span>
-                <span>{formatNaira(calculatePlatformPricing(form.creator_base_price).platform_fee_amount)}</span>
-              </div>
-              <div className="mt-2 flex justify-between border-t border-border pt-2 font-semibold text-foreground">
-                <span>Fan price</span>
-                <span>{formatNaira(calculatePlatformPricing(form.creator_base_price).fan_price)}</span>
               </div>
             </div>
 
@@ -552,6 +574,90 @@ export default function ManageProducts() {
                   className="mt-1 border-border/50 bg-background"
                 />
               </div>
+            </div>
+
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label>SKU</Label>
+                <Input
+                  value={form.sku}
+                  onChange={(event) => setForm({ ...form, sku: event.target.value })}
+                  className="mt-1 border-border/50 bg-background"
+                  placeholder="Optional"
+                />
+              </div>
+
+              <div>
+                <Label>Platform Fee Rate</Label>
+                <Input
+                  type="number"
+                  step="0.01"
+                  value={form.platform_fee_rate}
+                  onChange={(event) => setForm({ ...form, platform_fee_rate: event.target.value })}
+                  className="mt-1 border-border/50 bg-background"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-3 gap-4">
+              <div>
+                <Label>Tags</Label>
+                <Input
+                  value={form.tags}
+                  onChange={(event) => setForm({ ...form, tags: event.target.value })}
+                  className="mt-1 border-border/50 bg-background"
+                  placeholder="ginger, music, limited"
+                />
+              </div>
+              <div>
+                <Label>Sizes</Label>
+                <Input
+                  value={form.sizes}
+                  onChange={(event) => setForm({ ...form, sizes: event.target.value })}
+                  className="mt-1 border-border/50 bg-background"
+                  placeholder="S, M, L, XL"
+                />
+              </div>
+              <div>
+                <Label>Colors</Label>
+                <Input
+                  value={form.colors}
+                  onChange={(event) => setForm({ ...form, colors: event.target.value })}
+                  className="mt-1 border-border/50 bg-background"
+                  placeholder="Black, Cream"
+                />
+              </div>
+            </div>
+
+            <div className="grid gap-3 rounded-2xl border border-border/50 bg-background/40 p-4">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <Label>Private subscriber drop</Label>
+                  <p className="text-xs text-muted-foreground">Gate product, event, or drop behind a creator subscription.</p>
+                </div>
+                <Switch checked={form.requires_subscription} onCheckedChange={(value) => setForm({ ...form, requires_subscription: value, access_tier: value ? form.access_tier || 'supporter' : 'free' })} />
+              </div>
+
+              {form.requires_subscription && (
+                <div>
+                  <Label>Required Access Tier</Label>
+                  <Select value={form.access_tier} onValueChange={(value) => setForm({ ...form, access_tier: value })}>
+                    <SelectTrigger className="mt-1 border-border/50 bg-background">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="supporter">Supporter+</SelectItem>
+                      <SelectItem value="superfan">Superfan only</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+            </div>
+
+            <div className="flex items-center gap-3">
+              <Switch checked={form.shipping_required} onCheckedChange={(value) => setForm({ ...form, shipping_required: value })} />
+              <Label>Shipping required</Label>
             </div>
 
             {form.type === 'event' && (

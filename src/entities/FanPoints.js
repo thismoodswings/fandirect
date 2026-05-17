@@ -45,7 +45,7 @@ export const FanPoints = {
     return data;
   },
 
-  // Backward-compatible Base44-style alias used by older UI flows
+  // Backward-compatible filter alias used by older checkout flows
   async filter(filters = {}) {
     return FanPoints.list(filters);
   },

@@ -13,6 +13,7 @@ import ProductDetail from "@/pages/ProductDetail";
 import Events from "@/pages/Events";
 import Cart from "@/pages/Cart";
 import Checkout from "@/pages/Checkout";
+import Wishlist from "@/pages/Wishlist";
 import Dashboard from "@/pages/Dashboard";
 import Mine from "@/pages/Mine";
 import InvestorDashboard from "@/pages/InvestorDashboard";
@@ -47,6 +48,7 @@ const AuthenticatedApp = () => {
         <Route path="/events" element={<Events />} />
         <Route path="/cart" element={<Cart />} />
         <Route path="/checkout" element={<Checkout />} />
+        <Route path="/wishlist" element={<Wishlist />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/investors" element={<InvestorDashboard />} />
         <Route path="/mine" element={<Mine />} />

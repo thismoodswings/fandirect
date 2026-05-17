@@ -15,6 +15,7 @@ import {
 import { motion } from 'framer-motion'
 import ProductCard from '@/components/shared/ProductCard'
 import CreatorCard from '@/components/shared/CreatorCard'
+import FanDirectLogo from '@/components/brand/FanDirectLogo'
 import { Product, Creator } from '@/entities'
 import { fallbackProducts, fallbackCreators } from '@/lib/fallbackData'
 function sortProductsNewestFirst(rows = []) {
@@ -153,16 +154,16 @@ export default function Home() {
       setCreators(nextCreators.length ? nextCreators : fallbackCreators.slice(0, 6))
 
       if (nextProducts.length || nextCreators.length) {
-        setMessage('Content synced.')
+        setMessage('Loaded from Supabase.')
       } else {
-        setMessage('Showing featured content while live products and creators load.')
+        setMessage('Showing demo content until Supabase has products and creators.')
       }
     } catch (error) {
       console.warn(error)
 
       setProducts(fallbackProducts.slice(0, 8))
       setCreators(fallbackCreators.slice(0, 6))
-      setMessage('Showing featured content while live content loads.')
+      setMessage('Showing demo content because Supabase could not be loaded.')
     } finally {
       setIsLoading(false)
       setIsRefreshing(false)
@@ -224,7 +225,7 @@ export default function Home() {
           <EmptyState
             icon={ShoppingBag}
             title="No products yet"
-            description="Publish active products to show them here."
+            description="Add active products in Supabase to show them here."
           />
         )}
       </FeaturedSection>
@@ -247,7 +248,7 @@ export default function Home() {
           <EmptyState
             icon={Star}
             title="No creators yet"
-            description="Publish active creators to show them here."
+            description="Add active creators in Supabase to show them here."
           />
         )}
       </FeaturedSection>
@@ -283,10 +284,7 @@ export default function Home() {
       <footer className="mt-12 border-t border-border">
         <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-4 py-10 sm:px-6 md:flex-row">
           <div className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-secondary">
-              <Zap className="h-4 w-4 text-white" />
-            </div>
-
+            <FanDirectLogo className="h-8 w-8" />
             <span className="font-heading text-lg font-bold">FanDirect</span>
           </div>
 

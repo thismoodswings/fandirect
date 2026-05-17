@@ -7,8 +7,9 @@ import {
 } from 'lucide-react'
 import { toast } from 'sonner'
 import ProductCard from '@/components/shared/ProductCard'
+import ProductEngagementBar from '@/components/shared/ProductEngagementBar'
 import { useAuth } from '@/components/AuthContext'
-import { Creator, CreatorSubscription, Product, MediaDrop } from '@/entities'
+import { Creator, CreatorSubscription, Product, MediaDrop, FanToken } from '@/entities'
 import { fallbackCreators, fallbackProducts } from '@/lib/fallbackData'
 
 const tabs = [
@@ -94,42 +95,33 @@ export default function CreatorProfile() {
         return
       }
 
-      // Try fetching by username first, then fall back to ID.
-      // Only use the featured fallback when the creator record itself cannot be found.
+      // Try fetching by username first, then fall back to ID
       let nextCreator = null
       try {
         nextCreator = await Creator.getByUsername(creatorSlug)
-      } catch (usernameError) {
+      } catch {
         nextCreator = await Creator.get(creatorSlug)
       }
-
-      setCreator(nextCreator)
-      setMessage('')
 
       const [productResult, dropResult] = await Promise.allSettled([
         Product.list({ creator_id: nextCreator.id, status: 'active' }),
         MediaDrop.list({ creator_id: nextCreator.id }),
       ])
 
-      if (productResult.status === 'fulfilled') {
-        setProducts(productResult.value || [])
-      } else {
-        setProducts([])
-        console.warn('Creator products could not be loaded.', productResult.reason)
-      }
+      setCreator(nextCreator)
+      setProducts(productResult.status === 'fulfilled' ? productResult.value || [] : [])
+      setDrops(dropResult.status === 'fulfilled' ? dropResult.value || [] : [])
+      setMessage('')
 
-      if (dropResult.status === 'fulfilled') {
-        setDrops(dropResult.value || [])
-      } else {
-        setDrops([])
-        console.warn('Creator media drops could not be loaded.', dropResult.reason)
+      if (productResult.status === 'rejected' || dropResult.status === 'rejected') {
+        setError('Profile loaded. Some products or drops could not be loaded yet.')
       }
     } catch (loadError) {
       setCreator(fallbackCreators[0])
       setProducts(fallbackProducts)
       setDrops([])
-      setMessage('This creator profile is not live yet. Showing a featured preview.')
-      console.warn('Creator profile could not be loaded.', loadError)
+      setMessage('Supabase row not found yet. Showing demo profile.')
+      console.warn(loadError)
     } finally {
       setIsLoading(false)
     }
@@ -160,10 +152,8 @@ export default function CreatorProfile() {
       .map(([name, url]) => ({ name, url: normalizeUrl(url) }))
   }, [creator?.social_links])
 
-  const fanCount = Number(creator?.fan_count || creator?.followers || 0)
-  const creatorName = creator?.name || creator?.display_name || creator?.full_name || 'FanDirect Creator'
-  const creatorAvatar = creator?.avatar_url || creator?.profile_photo_url || creator?.image_url || creator?.photo_url || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=300'
-  const creatorCover = creator?.cover_url || creator?.cover_image_url || creator?.banner_url || 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=1200'
+  const fanCount = Number(creator?.fan_count || 0)
+  const userEmail = user?.email || user?.user_metadata?.email || ''
 
   if (isLoading || isLoadingAuth) {
     return (
@@ -185,8 +175,8 @@ export default function CreatorProfile() {
     <div>
       <div className="relative h-48 bg-muted md:h-64">
         <img
-          src={creatorCover}
-          alt={`${creatorName} cover`}
+          src={creator.cover_url || 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=1200'}
+          alt={creator.name || 'Creator cover'}
           className="h-full w-full object-cover"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-background via-background/50 to-transparent" />
@@ -200,14 +190,14 @@ export default function CreatorProfile() {
         <div className="-mt-16 flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
           <div className="flex flex-col gap-5 sm:flex-row sm:items-end">
             <img
-              src={creatorAvatar}
-              alt={creatorName}
+              src={creator.avatar_url || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=300'}
+              alt={creator.name || 'Creator'}
               className="h-28 w-28 rounded-3xl border-4 border-background object-cover md:h-32 md:w-32"
             />
             <div className="pb-2">
               <div className="flex flex-wrap items-center gap-2">
                 <h1 className="font-heading text-3xl font-bold text-foreground md:text-4xl">
-                  {creatorName}
+                  {creator.name || 'FanDirect Creator'}
                 </h1>
                 {creator.verified && <CheckCircle className="h-6 w-6 text-primary" />}
               </div>
@@ -278,7 +268,7 @@ export default function CreatorProfile() {
         <div className="mt-6">
           {activeTab === 'products' && <ProductsPanel products={products} creatorName={creator.name} />}
           {activeTab === 'media'    && (
-            <MediaPanel drops={drops} activeTier={activeTier} isAuthenticated={isAuthenticated}
+            <MediaPanel drops={drops} activeTier={activeTier} isAuthenticated={isAuthenticated} userEmail={userEmail}
               onSubscribeClick={() => setActiveTab('subscribe')} setError={setError} />
           )}
           {activeTab === 'subscribe' && (
@@ -310,7 +300,7 @@ function ProductsPanel({ products, creatorName }) {
   )
 }
 
-function MediaPanel({ drops, activeTier, isAuthenticated, onSubscribeClick, setError }) {
+function MediaPanel({ drops, activeTier, isAuthenticated, userEmail, onSubscribeClick, setError }) {
   if (!drops.length) {
     return (
       <div className="rounded-3xl border border-dashed border-border py-14 text-center text-sm text-muted-foreground">
@@ -323,13 +313,13 @@ function MediaPanel({ drops, activeTier, isAuthenticated, onSubscribeClick, setE
     <div className="grid gap-5 lg:grid-cols-2">
       {drops.map((drop) => (
         <MediaDropCard key={drop.id} drop={drop} activeTier={activeTier}
-          isAuthenticated={isAuthenticated} onSubscribeClick={onSubscribeClick} setError={setError} />
+          isAuthenticated={isAuthenticated} userEmail={userEmail} onSubscribeClick={onSubscribeClick} setError={setError} />
       ))}
     </div>
   )
 }
 
-function MediaDropCard({ drop, activeTier, isAuthenticated, onSubscribeClick, setError }) {
+function MediaDropCard({ drop, activeTier, isAuthenticated, userEmail, onSubscribeClick, setError }) {
   const [playerUrl, setPlayerUrl] = useState(drop.media_url || '')
   const [isPreparing, setIsPreparing] = useState(false)
   const accessAllowed = canAccessDrop(activeTier, drop.access_tier)
@@ -345,7 +335,12 @@ function MediaDropCard({ drop, activeTier, isAuthenticated, onSubscribeClick, se
       }
       if (!nextUrl) throw new Error('No playable URL for this drop.')
       setPlayerUrl(nextUrl)
-      await MediaDrop.recordPlay(drop.id)
+      const playResult = await MediaDrop.recordPlay(drop.id)
+      const fdtReward = Number(playResult?.fdtReward || drop.fdt_reward || 0)
+      if (fdtReward > 0 && userEmail) {
+        await FanToken.credit(userEmail, fdtReward).catch(() => null)
+        toast.success(`Played drop · +${fdtReward.toLocaleString()} FDT`)
+      }
     } catch (err) {
       setError(`Could not open media drop. ${err.message}`)
     } finally {
@@ -407,6 +402,16 @@ function MediaDropCard({ drop, activeTier, isAuthenticated, onSubscribeClick, se
               : <video controls src={playerUrl} className="max-h-72 w-full rounded-2xl" />}
           </div>
         )}
+
+        <div className="mt-4">
+          <ProductEngagementBar
+            item={drop}
+            itemType="media_drop"
+            compact
+            title={drop.title || 'FanDirect media drop'}
+          />
+        </div>
+
         <div className="mt-5 grid grid-cols-[1fr_auto] gap-2">
           <button type="button" onClick={preparePlayback} disabled={isPreparing}
             className={`inline-flex items-center justify-center gap-2 rounded-2xl px-4 py-3 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-60 ${
