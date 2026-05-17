@@ -19,6 +19,7 @@ import { addToCart } from '@/lib/cartUtils'
 import { Product, CreatorSubscription, ProductInteraction } from '@/entities'
 import { useAuth } from '@/components/AuthContext'
 import ProductEngagementBar from '@/components/shared/ProductEngagementBar'
+import { setShareMeta, resetShareMeta } from '@/lib/meta'
 import { fallbackProducts } from '@/lib/fallbackData'
 
 const dateFormatter = new Intl.DateTimeFormat(undefined, {
@@ -184,6 +185,20 @@ export default function ProductDetail() {
   const allowed = canAccessProduct(product, subscription)
   const requiredTier = getAccessTier(product)
   const creatorSlug = product?.creator_username || product?.creator_slug || product?.creator_id || ''
+
+  useEffect(() => {
+    if (!product) return undefined
+
+    setShareMeta({
+      title: product.title || product.name || 'FanDirect item',
+      description: product.description || `Shop ${product.title || product.name || 'this item'} on FanDirect.`,
+      image: product.image_url || product.cover_url || product.thumbnail_url,
+      url: `${window.location.origin}/product/${product.id}`,
+      type: product.type === 'event' ? 'event' : 'product',
+    })
+
+    return () => resetShareMeta()
+  }, [product])
 
   function handleAddToCart() {
     if (!product) return
